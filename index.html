@@ -16,7 +16,7 @@ html,body{margin:0;height:100%;background:#2b2366;font-family:-apple-system,"Pin
 #bad{display:none;color:#fff;font-size:22px;text-align:center;padding:30px}
 </style></head><body>
 <div id="wrap"><div id="p"></div><div id="bad">视频地址不对</div></div>
-<div id="end"><div class="ic">🎉</div><h1>看完啦！</h1><p>关掉这一页，回乐园开始挑战吧！</p><button id="close">🚀 回乐园</button><p id="hint" style="display:none;font-size:18px">点浏览器上面的 ✕ 关掉这一页</p></div>
+<div id="end"><div class="ic">🎉</div><h1>看完啦！</h1><p>点下面的按钮，回乐园开始挑战吧！</p><button id="close">🚀 回乐园</button></div>
 <script>
 var id=(new URLSearchParams(location.search).get('v')||'');
 if(!/^[\w-]{11}$/.test(id)){document.getElementById('bad').style.display='block';}
@@ -28,6 +28,7 @@ else{
       events:{onStateChange:function(e){ if(e.data===YT.PlayerState.ENDED){ document.getElementById('wrap').remove(); document.getElementById('end').style.display='flex'; } }}});
   };
 }
-document.getElementById('close').onclick=function(){ try{window.close();}catch(e){} setTimeout(function(){document.getElementById('hint').style.display='block';},300); };
+var APP='https://claude.ai/artifact/8UDwLddhgjRX2MoNaDLbMA';
+document.getElementById('close').onclick=function(){ try{window.close();}catch(e){} setTimeout(function(){ if(!window.closed){ location.href=APP; } },400); };
 </script>
 </body></html>
