@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>动画时间</title>
+<style>
+html,body{margin:0;height:100%;background:#2b2366;font-family:-apple-system,"PingFang SC",sans-serif;overflow:hidden}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#p{width:100vw;height:min(100vh,56.25vw)}
+#end{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(circle,#fff0f6 0,#ffd6e7 45%,#c9b8ff 100%);text-align:center}
+#end .ic{font-size:96px;animation:hop 1s ease-in-out infinite}
+#end h1{margin:0;font-size:44px;color:#ff4f88;text-shadow:0 4px 0 #fff}
+#end p{margin:0;font-size:24px;color:#5a4fb0}
+#end button{border:none;font:inherit;font-size:30px;font-weight:900;color:#fff;background:linear-gradient(180deg,#5cd6a0,#2fb57a);padding:16px 42px;border-radius:26px;box-shadow:0 7px 0 #1e8c5c}
+@keyframes hop{50%{transform:translateY(-14px) rotate(-6deg)}}
+#bad{display:none;color:#fff;font-size:22px;text-align:center;padding:30px}
+</style></head><body>
+<div id="wrap"><div id="p"></div><div id="bad">视频地址不对</div></div>
+<div id="end"><div class="ic">🎉</div><h1>看完啦！</h1><p>关掉这一页，回乐园开始挑战吧！</p><button id="close">🚀 回乐园</button><p id="hint" style="display:none;font-size:18px">点浏览器上面的 ✕ 关掉这一页</p></div>
+<script>
+var id=(new URLSearchParams(location.search).get('v')||'');
+if(!/^[\w-]{11}$/.test(id)){document.getElementById('bad').style.display='block';}
+else{
+  var s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s);
+  window.onYouTubeIframeAPIReady=function(){
+    new YT.Player('p',{videoId:id,width:'100%',height:'100%',
+      playerVars:{rel:0,playsinline:1,autoplay:1,fs:1,modestbranding:1,iv_load_policy:3},
+      events:{onStateChange:function(e){ if(e.data===YT.PlayerState.ENDED){ document.getElementById('wrap').remove(); document.getElementById('end').style.display='flex'; } }}});
+  };
+}
+document.getElementById('close').onclick=function(){ try{window.close();}catch(e){} setTimeout(function(){document.getElementById('hint').style.display='block';},300); };
+</script>
+</body></html>
