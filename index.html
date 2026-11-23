@@ -23,7 +23,7 @@ if(!/^[\w-]{11}$/.test(id)){document.getElementById('bad').style.display='block'
 else{
   var s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s);
   window.onYouTubeIframeAPIReady=function(){
-    new YT.Player('p',{videoId:id,width:'100%',height:'100%',
+    window.__p=new YT.Player('p',{videoId:id,width:'100%',height:'100%',
       playerVars:{rel:0,playsinline:1,autoplay:1,fs:1,modestbranding:1,iv_load_policy:3},
       events:{onStateChange:function(e){ if(e.data===YT.PlayerState.ENDED){ document.getElementById('wrap').remove(); document.getElementById('end').style.display='flex'; } }}});
   };
