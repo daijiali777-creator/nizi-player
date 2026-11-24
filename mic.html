@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>麦克风测试</title>
+<style>body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#2b2366;color:#fff;font:20px/1.5 -apple-system,"PingFang SC",sans-serif;text-align:center;padding:20px}
+button{border:none;font:inherit;font-size:26px;font-weight:800;color:#fff;background:linear-gradient(180deg,#ff7aa8,#ff4f88);padding:18px 36px;border-radius:24px;box-shadow:0 6px 0 #c2185b}
+#s{min-height:2em;max-width:600px}</style></head><body>
+<h2>🎤 麦克风测试</h2>
+<button id="b">按住说话</button>
+<div id="s">按住按钮说一句话，松开后会放给你听。</div>
+<script>
+let rec,chunks=[],stream,t0;
+const s=document.getElementById('s'),b=document.getElementById('b');
+const info=()=>`MediaRecorder:${typeof MediaRecorder!=='undefined'} getUserMedia:${!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)} SpeechRecognition:${!!(window.SpeechRecognition||window.webkitSpeechRecognition)}`;
+s.textContent+=' （'+info()+'）';
+async function start(e){e.preventDefault();try{stream=stream||await navigator.mediaDevices.getUserMedia({audio:true});chunks=[];rec=new MediaRecorder(stream);rec.ondataavailable=x=>chunks.push(x.data);rec.onstop=()=>{const bl=new Blob(chunks,{type:rec.mimeType});s.textContent='✅ 录到了 '+((Date.now()-t0)/1000).toFixed(1)+' 秒（'+rec.mimeType+'），正在播放…';const a=new Audio(URL.createObjectURL(bl));a.play().catch(()=>{s.textContent+=' 点一下页面再播放';document.body.onclick=()=>a.play();});};rec.start();t0=Date.now();s.textContent='🔴 正在录音…松开结束';}catch(err){s.textContent='❌ 用不了麦克风：'+err.name+' '+err.message+'（'+info()+'）';}}
+function stop(e){e.preventDefault();if(rec&&rec.state==='recording')rec.stop();}
+b.addEventListener('pointerdown',start);b.addEventListener('pointerup',stop);b.addEventListener('pointerleave',stop);
+</script></body></html>
