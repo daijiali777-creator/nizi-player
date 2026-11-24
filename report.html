@@ -16,7 +16,7 @@ input,button{font:inherit;padding:10px 14px;border-radius:12px;border:1px solid 
 <div id="out"></div>
 <script>
 const Q = new URLSearchParams(location.search); if (Q.get('w')) localStorage.setItem('nzw', Q.get('w'));
-const W = (localStorage.getItem('nzw') || '').replace(/\/$/, '');
+const W = (localStorage.getItem('nzw') || 'https://nizi-shudong.daijiali777.workers.dev').replace(/\/$/, '');
 const EMO = { happy: '😊', calm: '🙂', sad: '😢', angry: '😠', worried: '😟', jealous: '😤', scared: '😨', mixed: '🤔' };
 const ZH = { happy: '开心', calm: '平静', sad: '难过', angry: '生气', worried: '担心', jealous: '嫉妒', scared: '害怕', mixed: '复杂' };
 const esc = s => String(s || '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -33,7 +33,20 @@ async function load(pin) {
   j.days.forEach(d => { const seen = new Set(); h += `<div class="card"><div class="k">${d.d}</div>`; d.items.forEach(i => { const key = i.summary; if (seen.has(key)) return; seen.add(key); h += `<div class="${i.risk === 'yellow' ? 'yellow' : ''}" style="padding-left:8px;margin:4px 0">${EMO[i.mood] || ''} <span class="muted">${esc(i.ts.slice(-5))} · ${esc(i.topic)}</span><br>${esc(i.summary)}</div>`; }); h += '</div>'; });
   if (j.gifts.length) { h += '<h2>💌 她送给你的悄悄话</h2>'; j.gifts.slice().reverse().forEach(g => { h += `<div class="card"><div class="muted">${esc(g.ts)}</div>`; g.lines.forEach(l => h += `<div>${l.r === 'k' ? '<b>Nizi：</b>' : '<span class="muted">宠物：</span>'}${esc(l.t)}</div>`); h += '</div>'; }); }
   if (!j.days.length) h += '<div class="card muted">还没有对话记录。</div>';
+  h = `<h2>💡 可以对 Nizi 说的话</h2><div class="card"><div id="sug" class="muted">正在想…</div><button id="sugN" style="margin-top:10px">换一批</button></div>
+  <h2>🎙 给 Nizi 留一段悄悄话</h2><div class="card"><div class="muted">按住按钮说话，松开就录好了。Nizi 下次进树洞时，小鸭会先放给她听。</div>
+  <button id="rec" style="margin-top:10px;font-size:20px;padding:14px 24px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none">按住录音</button> <span id="recS" class="muted">${j.mom ? (j.mom.played ? '上一段（' + esc(j.mom.ts) + '）她已经听过了' : '已录好一段（' + esc(j.mom.ts) + '），她还没听') : ''}</span></div>` + h +
+  `<h2>📧 提醒邮件</h2><div class="card"><div class="muted">如果她说到不安全的事，会发邮件到 davinadnz@gmail.com。</div><button id="atest" style="margin-top:10px">发一封测试邮件</button> <span id="atS" class="muted"></span></div>`;
   document.getElementById('out').innerHTML = h;
+  const P = localStorage.getItem('nzpin');
+  const sug = async n => { document.getElementById('sug').textContent = '正在想…'; try { const r = await (await fetch(W + '/suggest' + (n ? '?new=1' : ''), { headers: { 'X-Pin': P } })).json(); document.getElementById('sug').style.whiteSpace = 'pre-wrap'; document.getElementById('sug').style.color = '#2d2a4a'; document.getElementById('sug').textContent = r.text || '暂时想不出来，稍后再试。'; } catch (e) { document.getElementById('sug').textContent = '网络不太好，稍后再试。'; } };
+  sug(); document.getElementById('sugN').onclick = () => sug(1);
+  document.getElementById('atest').onclick = async () => { await fetch(W + '/alerttest', { headers: { 'X-Pin': P } }); document.getElementById('atS').textContent = '已发送，几分钟内查收（也看看垃圾邮件）'; };
+  let rec, ch = [], st, t0; const b = document.getElementById('rec'), S = document.getElementById('recS');
+  b.addEventListener('contextmenu', e => e.preventDefault()); b.addEventListener('touchstart', e => e.preventDefault(), { passive: false });
+  b.addEventListener('pointerdown', async e => { e.preventDefault(); try { st = st || await navigator.mediaDevices.getUserMedia({ audio: true }); ch = []; rec = new MediaRecorder(st); rec.ondataavailable = x => ch.push(x.data); rec.onstop = async () => { if (Date.now() - t0 < 1000) { S.textContent = '太短啦，要按住说话'; return; } const bl = new Blob(ch, { type: rec.mimeType }); const fr = new FileReader(); fr.onload = async () => { S.textContent = '正在保存…'; const r = await (await fetch(W + '/momsg', { method: 'POST', headers: { 'X-Pin': P, 'Content-Type': 'application/json' }, body: JSON.stringify({ audio: fr.result.split(',')[1], mime: rec.mimeType }) })).json(); S.textContent = r.ok ? '✅ 录好了！Nizi 下次进树洞会听到' : '保存失败，再试一次'; }; fr.readAsDataURL(bl); }; rec.start(); t0 = Date.now(); b.textContent = '🔴 正在录…松开结束'; } catch (err) { S.textContent = '麦克风打不开'; } });
+  const stop = e => { e.preventDefault(); if (rec && rec.state === 'recording') { rec.stop(); b.textContent = '按住录音'; } };
+  b.addEventListener('pointerup', stop); b.addEventListener('pointerleave', stop);
 }
 document.getElementById('go').onclick = () => load(document.getElementById('pin').value);
 if (localStorage.getItem('nzpin')) load(localStorage.getItem('nzpin'));

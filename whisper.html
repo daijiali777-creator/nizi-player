@@ -77,10 +77,10 @@ async function api(path, body) {
   const r = await fetch(W + path + (path.includes('?') ? '&' : '?') + 'p=' + encodeURIComponent(PET), { method: body ? 'POST' : 'GET', headers: { 'X-K': K, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
   return r.json();
 }
-function play(b64) {
+function play(b64, plain) {
   return new Promise(res => {
     const bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
-    AC.decodeAudioData(u.buffer, buf => { const s = AC.createBufferSource(); s.buffer = buf; s.connect(AC.destination); $('#pet').classList.add('talk'); s.onended = () => { $('#pet').classList.remove('talk'); res(); }; s.start(); }, () => res());
+    AC.decodeAudioData(u.buffer, buf => { const s = AC.createBufferSource(); s.buffer = buf; s.connect(AC.destination); if (!plain) $('#pet').classList.add('talk'); s.onended = () => { $('#pet').classList.remove('talk'); res(); }; s.start(); }, () => res());
   });
 }
 function bubble(t) { const b = $('#bub'); b.textContent = t; b.classList.add('on'); }
@@ -90,7 +90,7 @@ const FIX = {
   help: '我想请你帮个忙。我家来了一只小小的新宠物，大家都围着它转，我心里有点酸酸的。你能教教我吗？',
   night: '睡觉前，我们说一会儿悄悄话吧。今天最开心的一件事是什么呀？', again: '嗯？我刚刚没听清，你可以再说一次吗？',
   bye: '今天的悄悄话时间到啦。谢谢你跟我说这么多，我好开心！我们明天见哦。', full: '今天我们已经聊了好多啦，我要去休息一下咯，明天再来找我吧！',
-  gift: '好的，我已经帮你把这些话送给妈妈啦！', draw: '哇，你画了一幅画！可以讲给我听听吗？' };
+  gift: '好的，我已经帮你把这些话送给妈妈啦！', mom: '嘘，妈妈给你留了一段悄悄话哦，我们一起听吧！', draw: '哇，你画了一幅画！可以讲给我听听吗？' };
 async function say(key) { const t = typeof FIX[key] === 'function' ? FIX[key]() : FIX[key]; bubble(t); try { const j = await api('/say', { text: t }); if (j.audio) await play(j.audio); } catch (e) {} }
 function think(on) { $('#pet').classList.toggle('think', on); }
 function setTalk(on) { $('#talk').classList.toggle('off', !on); }
@@ -109,7 +109,12 @@ $('#goB').onclick = async () => {
   const first = !LS.g('nzrule');
   let key = MODE === 'help' ? 'help' : MODE === 'night' ? 'night' : ['hi1', 'hi2', 'hi3'][Math.floor(Math.random() * 3)];
   if (first) { await say('rule'); LS.s('nzrule', '1'); }
-  await say(key);
+  let op = null; think(true);
+  try { op = await api('/open', { mode: MODE }); } catch (e) {}
+  think(false);
+  if (op && op.full) { ended = true; await say('full'); return; }
+  if (op && op.mom && op.mom.audio) { await say('mom'); await play(op.mom.audio, true); try { await api('/momplayed', {}); } catch (e) {} }
+  if (op && op.audio) { bubble(op.text); await play(op.audio); } else await say(key);
   hist.push({ r: 'p', t: $('#bub').textContent }); saveH();
   setTalk(true);
 };
