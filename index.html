@@ -30,7 +30,7 @@ else{
   var s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s);
   window.onYouTubeIframeAPIReady=function(){
     var pv={rel:0,playsinline:1,autoplay:1,fs:1,modestbranding:1,iv_load_policy:3}; if(ids[0].s)pv.start=ids[0].s; if(ids[0].e)pv.end=ids[0].e;
-    window.__p=new YT.Player('p',{host:'https://www.youtube-nocookie.com',videoId:ids[0].id,width:'100%',height:'100%',
+    window.__p=new YT.Player('p',{videoId:ids[0].id,width:'100%',height:'100%',
       playerVars:pv,
       events:{onStateChange:function(e){ if(e.data===YT.PlayerState.ENDED){ next(); } }}});
   };
