@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>树洞 · 家长报告</title>
+<style>
+body{margin:0;font:17px/1.6 -apple-system,"PingFang SC",sans-serif;background:#f7f4ff;color:#2d2a4a;padding:18px;max-width:760px;margin:auto}
+h1{font-size:24px;margin:6px 0 14px}h2{font-size:19px;margin:24px 0 8px}
+.card{background:#fff;border-radius:16px;padding:14px 16px;margin:10px 0;box-shadow:0 2px 8px #0001}
+.red{border-left:6px solid #e53935}.yellow{border-left:6px solid #f9a825}
+.trend{display:flex;gap:6px;flex-wrap:wrap}.trend div{text-align:center;font-size:13px;color:#888;background:#fff;border-radius:12px;padding:6px 8px;min-width:54px}
+.trend b{display:block;font-size:26px}
+input,button{font:inherit;padding:10px 14px;border-radius:12px;border:1px solid #ccc}button{background:#6c4cd6;color:#fff;border:0}
+.muted{color:#888;font-size:14px}.k{color:#6c4cd6;font-weight:600}
+</style></head><body>
+<h1>🌳 阳光树洞 · 家长报告</h1>
+<div id="login" class="card">输入家长密码：<input id="pin" type="password" inputmode="numeric" style="width:120px"> <button id="go">查看</button><div class="muted" id="err"></div></div>
+<div id="out"></div>
+<script>
+const Q = new URLSearchParams(location.search); if (Q.get('w')) localStorage.setItem('nzw', Q.get('w'));
+const W = (localStorage.getItem('nzw') || '').replace(/\/$/, '');
+const EMO = { happy: '😊', calm: '🙂', sad: '😢', angry: '😠', worried: '😟', jealous: '😤', scared: '😨', mixed: '🤔' };
+const ZH = { happy: '开心', calm: '平静', sad: '难过', angry: '生气', worried: '担心', jealous: '嫉妒', scared: '害怕', mixed: '复杂' };
+const esc = s => String(s || '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+async function load(pin) {
+  const r = await fetch(W + '/report', { headers: { 'X-Pin': pin } }); const j = await r.json();
+  if (j.error) { document.getElementById('err').textContent = '密码不对'; return; }
+  localStorage.setItem('nzpin', pin); document.getElementById('login').style.display = 'none';
+  let h = '';
+  if (j.alerts.length) { h += '<h2>🚨 需要你关注</h2>'; j.alerts.slice().reverse().forEach(a => h += `<div class="card red"><div class="muted">${esc(a.ts)}</div><div>${esc(a.summary)}</div><div class="muted">她说：「${esc(a.said)}」<br>宠物回答：「${esc(a.reply)}」</div></div>`); }
+  h += '<h2>📈 最近的心情</h2><div class="trend">';
+  j.days.slice(0, 14).reverse().forEach(d => { const c = {}; d.items.forEach(i => c[i.mood] = (c[i.mood] || 0) + 1); const top = Object.entries(c).sort((a, b) => b[1] - a[1])[0]; h += `<div><b>${EMO[top && top[0]] || '·'}</b>${d.d.slice(5)}<br>${d.items.length}句</div>`; });
+  h += '</div>';
+  h += '<h2>📝 每天聊了什么（概括）</h2>';
+  j.days.forEach(d => { const seen = new Set(); h += `<div class="card"><div class="k">${d.d}</div>`; d.items.forEach(i => { const key = i.summary; if (seen.has(key)) return; seen.add(key); h += `<div class="${i.risk === 'yellow' ? 'yellow' : ''}" style="padding-left:8px;margin:4px 0">${EMO[i.mood] || ''} <span class="muted">${esc(i.ts.slice(-5))} · ${esc(i.topic)}</span><br>${esc(i.summary)}</div>`; }); h += '</div>'; });
+  if (j.gifts.length) { h += '<h2>💌 她送给你的悄悄话</h2>'; j.gifts.slice().reverse().forEach(g => { h += `<div class="card"><div class="muted">${esc(g.ts)}</div>`; g.lines.forEach(l => h += `<div>${l.r === 'k' ? '<b>Nizi：</b>' : '<span class="muted">宠物：</span>'}${esc(l.t)}</div>`); h += '</div>'; }); }
+  if (!j.days.length) h += '<div class="card muted">还没有对话记录。</div>';
+  document.getElementById('out').innerHTML = h;
+}
+document.getElementById('go').onclick = () => load(document.getElementById('pin').value);
+if (localStorage.getItem('nzpin')) load(localStorage.getItem('nzpin'));
+</script></body></html>

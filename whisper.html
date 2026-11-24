@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>阳光树洞</title>
+<style>
+*{box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{font:20px/1.5 -apple-system,"PingFang SC",sans-serif;color:#fff;background:radial-gradient(ellipse at 50% 115%,#6b4fa8 0,#3a2f7a 38%,#1d1b4a 75%,#121233 100%)}
+#sky{position:fixed;inset:0;pointer-events:none}
+.st{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;animation:tw 3s ease-in-out infinite}
+@keyframes tw{50%{opacity:.2;transform:scale(.6)}}
+.moon{position:fixed;top:12vh;right:9vw;width:70px;height:70px;border-radius:50%;box-shadow:-14px 8px 0 0 #ffe9a8;transform:rotate(-20deg);filter:drop-shadow(0 0 14px #ffe9a888)}
+#top{position:fixed;top:0;left:0;right:0;display:flex;gap:12px;padding:14px 16px;z-index:5}
+#top button,#top a{border:0;font:inherit;font-size:18px;font-weight:700;color:#3a2d5c;background:#fff6dc;border-radius:18px;padding:8px 16px;box-shadow:0 4px 0 #d8c48f;text-decoration:none}
+#top .sp{flex:1}
+#hollow{position:fixed;left:50%;top:11vh;transform:translateX(-50%);width:min(66vw,420px);height:min(42vh,400px);border-radius:48% 48% 18% 18%/60% 60% 14% 14%;
+ background:radial-gradient(ellipse at 50% 70%,#ffd98a55 0,#7a4b2a 55%,#5a3418 100%);box-shadow:inset 0 10px 40px #2a1508,0 0 0 18px #8a5a32,0 0 0 26px #6b4122,0 0 60px 30px #ffcf7a33}
+#pet{position:absolute;left:50%;bottom:4%;transform:translateX(-50%);width:72%;animation:bob 3.2s ease-in-out infinite}
+#pet svg{width:100%;height:auto;display:block}
+@keyframes bob{50%{transform:translateX(-50%) translateY(-8px)}}
+#pet .m2,#pet .eyeH,#pet .hapEye{display:none}
+#pet.talk .m1{display:none}#pet.talk .m2{display:inline;animation:yap .22s steps(2) infinite;transform-box:fill-box;transform-origin:50% 0}
+@keyframes yap{50%{transform:scaleY(.35)}}
+#pet.think{animation:tilt 1.4s ease-in-out infinite}
+@keyframes tilt{25%{transform:translateX(-50%) rotate(-5deg)}75%{transform:translateX(-50%) rotate(5deg)}}
+#dots{position:absolute;right:6%;top:6%;font-size:34px;display:none;letter-spacing:4px;color:#fff6dc}
+#pet.think~#dots{display:block;animation:dd 1s steps(4) infinite}
+@keyframes dd{0%{clip-path:inset(0 100% 0 0)}100%{clip-path:inset(0 0 0 0)}}
+#bub{position:fixed;left:50%;top:calc(11vh + min(42vh,400px) + 42px);transform:translateX(-50%);max-width:min(86vw,620px);background:#fff;color:#3a2d5c;border-radius:24px;padding:12px 22px;font-size:22px;font-weight:600;text-align:center;opacity:0;transition:opacity .3s}
+#bub.on{opacity:1}#bub.on~#hint{display:none}
+#bub:before{content:"";position:absolute;left:50%;top:-14px;margin-left:-12px;border:12px solid transparent;border-top:0;border-bottom:14px solid #fff}
+#talk{position:fixed;left:50%;bottom:5vh;transform:translateX(-50%);width:150px;height:150px;border-radius:50%;border:0;font:inherit;font-size:22px;font-weight:800;color:#fff;
+ background:radial-gradient(circle at 40% 30%,#ffa3c4,#ff5a92);box-shadow:0 8px 0 #c2185b,0 0 0 10px #ffffff22;touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+#talk svg{width:46px;height:46px}
+#talk.rec{background:radial-gradient(circle at 40% 30%,#ff8a8a,#ff3b3b);transform:translateX(-50%) scale(1.08);box-shadow:0 8px 0 #a51d1d,0 0 0 14px #ff6b6b55,0 0 0 30px #ff6b6b22}
+#talk.off{filter:grayscale(.8) opacity(.5)}
+#hint{position:fixed;left:0;right:0;bottom:calc(5vh + 160px);text-align:center;font-size:17px;color:#e9e3ff;opacity:.85}
+#go{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:#121233cc}
+#go button{border:0;font:inherit;font-size:30px;font-weight:800;color:#3a2d5c;background:#ffe9a8;border-radius:32px;padding:22px 44px;box-shadow:0 8px 0 #d6b45a}
+#drawBox{position:fixed;inset:0;z-index:15;background:#1d1b4aee;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+#cv{background:#fff;border-radius:20px;touch-action:none;width:min(90vw,700px);height:min(60vh,520px)}
+#pal{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+#pal i{width:44px;height:44px;border-radius:50%;border:4px solid #fff;display:block}
+#pal i.on{transform:scale(1.2);box-shadow:0 0 0 3px #ffe9a8}
+#drawBox .row{display:flex;gap:16px}
+#drawBox .row button{border:0;font:inherit;font-size:22px;font-weight:800;border-radius:20px;padding:10px 26px;color:#3a2d5c;background:#fff6dc;box-shadow:0 5px 0 #d8c48f}
+#drawBox .row .ok{background:#ff7aa8;color:#fff;box-shadow:0 5px 0 #c2185b}
+</style></head><body>
+<div id="sky"></div><div class="moon"></div>
+<div id="top"><a id="home" href="#">🏠 回乐园</a><span class="sp"></span><button id="draw">🎨 画心情</button><button id="gift">💌 送给妈妈</button></div>
+<div id="hollow"><div id="pet"></div><div id="dots">···</div></div>
+<div id="bub"></div>
+<div id="hint">按住粉色按钮说话，说完松开</div>
+<button id="talk" class="off" oncontextmenu="return false"><svg viewBox="0 0 24 24" fill="#fff"><rect x="8.5" y="2" width="7" height="12" rx="3.5"/><path d="M5 11a7 7 0 0 0 14 0" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M12 18v3" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg><span id="tl">按住说话</span></button>
+<div id="go"><button id="goB">🌙 进入树洞</button></div>
+<div id="drawBox"><canvas id="cv"></canvas><div id="pal"></div><div class="row"><button id="dClear">重画</button><button id="dCancel">不画了</button><button class="ok" id="dOk">给宠物看</button></div></div>
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const LS = { g: k => { try { return localStorage.getItem(k) } catch (e) { return null } }, s: (k, v) => { try { localStorage.setItem(k, v) } catch (e) {} } };
+if (Q.get('k')) LS.s('nzk', Q.get('k')); if (Q.get('w')) LS.s('nzw', Q.get('w'));
+const K = LS.g('nzk') || '', W = (LS.g('nzw') || 'https://nizi-shudong.WORKER.workers.dev').replace(/\/$/, '');
+const PET = Q.get('p') || '小鸭', MODE = Q.get('m') || '', BACK = Q.get('back') || 'https://claude.ai/artifact/8UDwLddhgjRX2MoNaDLbMA';
+const SESSION_MS = 5 * 60 * 1000, PER_DAY = 2;
+$('#home').href = BACK;
+// 宠物形象：由小程序通过 #s= 传入
+try { const h = new URLSearchParams(location.hash.slice(1)).get('s'); if (h) { const svg = decodeURIComponent(escape(atob(h))); LS.s('nzsvg', svg); } } catch (e) {}
+$('#pet').innerHTML = LS.g('nzsvg') || '<svg viewBox="0 0 200 200"><ellipse cx="100" cy="112" rx="64" ry="62" fill="#ffe27a" stroke="#f2c84b" stroke-width="3"/><circle cx="80" cy="102" r="7" fill="#3a2d5c"/><circle cx="120" cy="102" r="7" fill="#3a2d5c"/><g class="m1"><path d="M90 118l10 8 10-8z" fill="#ffa53b"/></g><g class="m2"><path d="M90 118l10 12 10-12z" fill="#ff8a65"/></g></svg>';
+// 星星
+for (let i = 0; i < 60; i++) { const s = document.createElement('i'); s.className = 'st'; s.style.left = Math.random() * 100 + 'vw'; s.style.top = Math.random() * 70 + 'vh'; s.style.animationDelay = Math.random() * 3 + 's'; const z = 1 + Math.random() * 2.5; s.style.width = s.style.height = z + 'px'; $('#sky').appendChild(s); }
+
+const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Budapest' }).format(new Date());
+let AC, hist = [], busy = false, ended = false, t0 = 0, shown = '';
+try { hist = JSON.parse(sessionStorage.getItem('nzh') || '[]') } catch (e) {}
+const saveH = () => { try { sessionStorage.setItem('nzh', JSON.stringify(hist.slice(-30))) } catch (e) {} };
+
+async function api(path, body) {
+  const r = await fetch(W + path + (path.includes('?') ? '&' : '?') + 'p=' + encodeURIComponent(PET), { method: body ? 'POST' : 'GET', headers: { 'X-K': K, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+  return r.json();
+}
+function play(b64) {
+  return new Promise(res => {
+    const bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    AC.decodeAudioData(u.buffer, buf => { const s = AC.createBufferSource(); s.buffer = buf; s.connect(AC.destination); $('#pet').classList.add('talk'); s.onended = () => { $('#pet').classList.remove('talk'); res(); }; s.start(); }, () => res());
+  });
+}
+function bubble(t) { const b = $('#bub'); b.textContent = t; b.classList.add('on'); }
+async function say(key) { try { const j = await api('/say?t=' + key); if (j.audio) { bubble(j.text); await play(j.audio); } } catch (e) {} }
+function think(on) { $('#pet').classList.toggle('think', on); }
+function setTalk(on) { $('#talk').classList.toggle('off', !on); }
+
+function sessions() { try { const o = JSON.parse(LS.g('nzs') || '{}'); return o.d === today ? o.n : 0 } catch (e) { return 0 } }
+$('#goB').onclick = async () => {
+  AC = new (window.AudioContext || window.webkitAudioContext)(); AC.resume();
+  $('#go').style.display = 'none';
+  if (!K) { bubble('还没有设置好哦，请爸爸妈妈帮忙。'); return; }
+  const resumed = sessionStorage.getItem('nzt');
+  if (resumed && Date.now() - +resumed < SESSION_MS) t0 = +resumed;
+  else {
+    if (sessions() >= PER_DAY) { ended = true; await say('full'); return; }
+    LS.s('nzs', JSON.stringify({ d: today, n: sessions() + 1 })); t0 = Date.now(); sessionStorage.setItem('nzt', t0); hist = []; saveH();
+  }
+  think(true);
+  const first = !LS.g('nzrule');
+  let key = MODE === 'help' ? 'help' : MODE === 'night' ? 'night' : ['hi1', 'hi2', 'hi3'][Math.floor(Math.random() * 3)];
+  think(false);
+  if (first) { await say('rule'); LS.s('nzrule', '1'); }
+  await say(key);
+  hist.push({ r: 'p', t: $('#bub').textContent }); saveH();
+  setTalk(true);
+};
+
+// ===== 录音（WAV 16kHz 单声道）=====
+let stream, src, proc, bufs = [], recOn = false, recT0 = 0, maxT;
+async function recStart(e) {
+  e.preventDefault(); if (busy || ended || $('#talk').classList.contains('off')) return;
+  try {
+    stream = stream || await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    src = AC.createMediaStreamSource(stream); proc = AC.createScriptProcessor(4096, 1, 1); bufs = [];
+    proc.onaudioprocess = ev => { if (recOn) bufs.push(new Float32Array(ev.inputBuffer.getChannelData(0))); };
+    src.connect(proc); proc.connect(AC.destination);
+    recOn = true; recT0 = Date.now(); $('#talk').classList.add('rec'); $('#tl').textContent = '我在听…';
+    maxT = setTimeout(() => recStop(new Event('x')), 30000);
+  } catch (err) { bubble('麦克风打不开，请爸爸妈妈帮忙看看。'); }
+}
+function toWav(chunks, rate) {
+  let n = 0; chunks.forEach(c => n += c.length); const all = new Float32Array(n); let o = 0; chunks.forEach(c => { all.set(c, o); o += c.length; });
+  const ratio = rate / 16000, m = Math.floor(n / ratio), pcm = new Int16Array(m);
+  for (let i = 0; i < m; i++) { const v = all[Math.floor(i * ratio)]; pcm[i] = Math.max(-1, Math.min(1, v)) * 0x7fff; }
+  const buf = new ArrayBuffer(44 + pcm.length * 2), d = new DataView(buf), w = (p, s) => { for (let i = 0; i < s.length; i++) d.setUint8(p + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); d.setUint32(4, 36 + pcm.length * 2, true); w(8, 'WAVE'); w(12, 'fmt '); d.setUint32(16, 16, true); d.setUint16(20, 1, true); d.setUint16(22, 1, true);
+  d.setUint32(24, 16000, true); d.setUint32(28, 32000, true); d.setUint16(32, 2, true); d.setUint16(34, 16, true); w(36, 'data'); d.setUint32(40, pcm.length * 2, true);
+  new Int16Array(buf, 44).set(pcm);
+  const u = new Uint8Array(buf); let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s);
+}
+async function recStop(e) {
+  if (e.preventDefault) e.preventDefault(); if (!recOn) return;
+  recOn = false; clearTimeout(maxT); $('#talk').classList.remove('rec'); $('#tl').textContent = '按住说话';
+  try { src.disconnect(); proc.disconnect(); } catch (x) {}
+  if (Date.now() - recT0 < 700) { bubble('要按住说话哦，说完再松开～'); return; }
+  const wav = toWav(bufs, AC.sampleRate);
+  busy = true; setTalk(false); think(true); $('#bub').classList.remove('on');
+  try {
+    const j = await api('/chat', { audio: wav, hist, mode: MODE });
+    think(false);
+    if (j.full) { ended = true; await say('full'); return; }
+    if (j.again) { await say('again'); }
+    else if (j.audio) { hist.push({ r: 'k', t: j.said }, { r: 'p', t: j.reply }); saveH(); bubble(j.reply); await play(j.audio); }
+    else { bubble('哎呀，我卡住了一下，再说一次好吗？'); }
+  } catch (err) { think(false); bubble('网络好像不太好，再试一次吧。'); }
+  busy = false;
+  if (Date.now() - t0 > SESSION_MS) { ended = true; await say('bye'); $('#hint').textContent = '点左上角 🏠 回乐园'; return; }
+  setTalk(true);
+}
+const T = $('#talk');
+T.addEventListener('contextmenu', e => e.preventDefault());
+T.addEventListener('touchstart', e => e.preventDefault(), { passive: false });
+T.addEventListener('pointerdown', recStart); T.addEventListener('pointerup', recStop); T.addEventListener('pointercancel', recStop); T.addEventListener('pointerleave', recStop);
+
+// ===== 送给妈妈 =====
+$('#gift').onclick = async () => {
+  if (!AC || busy) return; const lines = hist.filter(h => h.r === 'k');
+  if (!lines.length) { bubble('先跟我说说话，再送给妈妈哦。'); return; }
+  busy = true; try { await api('/gift', { lines: hist }); await say('gift'); } catch (e) {} busy = false;
+};
+
+// ===== 画心情 =====
+const COLS = ['#ff4f6d', '#ff9f43', '#ffd93d', '#6bcB77', '#4d96ff', '#9b5de5', '#8d6e63', '#3a2d5c', '#ffb3c7'];
+let col = COLS[0], cv = $('#cv'), cx, drawing = false, drew = false;
+COLS.forEach((c, i) => { const el = document.createElement('i'); el.style.background = c; if (!i) el.className = 'on'; el.onclick = () => { col = c; document.querySelectorAll('#pal i').forEach(x => x.classList.remove('on')); el.classList.add('on'); }; $('#pal').appendChild(el); });
+function cvInit() { const r = cv.getBoundingClientRect(); cv.width = r.width * 2; cv.height = r.height * 2; cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); cx.lineCap = cx.lineJoin = 'round'; cx.lineWidth = 16; drew = false; }
+const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * 2, (e.clientY - r.top) * 2]; };
+cv.addEventListener('pointerdown', e => { drawing = true; drew = true; const [x, y] = pt(e); cx.strokeStyle = col; cx.beginPath(); cx.moveTo(x, y); cx.lineTo(x + .1, y); cx.stroke(); });
+cv.addEventListener('pointermove', e => { if (!drawing) return; const [x, y] = pt(e); cx.lineTo(x, y); cx.stroke(); });
+['pointerup', 'pointerleave', 'pointercancel'].forEach(k => cv.addEventListener(k, () => drawing = false));
+$('#draw').onclick = () => { if (!AC || busy || ended) return; $('#drawBox').style.display = 'flex'; cvInit(); say('draw'); };
+$('#dClear').onclick = cvInit; $('#dCancel').onclick = () => $('#drawBox').style.display = 'none';
+$('#dOk').onclick = async () => {
+  if (!drew) return; $('#drawBox').style.display = 'none';
+  const sm = document.createElement('canvas'); sm.width = 600; sm.height = Math.round(600 * cv.height / cv.width); sm.getContext('2d').drawImage(cv, 0, 0, sm.width, sm.height);
+  const img = sm.toDataURL('image/png').split(',')[1];
+  busy = true; setTalk(false); think(true);
+  try { const j = await api('/draw', { img, hist }); think(false); if (j.audio) { hist.push({ r: 'k', t: j.said }, { r: 'p', t: j.reply }); saveH(); bubble(j.reply); await play(j.audio); } } catch (e) { think(false); }
+  busy = false; if (!ended) setTalk(true);
+};
+</script></body></html>
