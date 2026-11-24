@@ -18,14 +18,14 @@ html,body{margin:0;height:100%;background:#2b2366;font-family:-apple-system,"Pin
 <div id="wrap"><div id="p"></div><div id="bad">视频地址不对</div></div>
 <div id="end"><div class="ic">🎉</div><h1>看完啦！</h1><p>点下面的按钮，回乐园开始挑战吧！</p><button id="close">🚀 回乐园</button></div>
 <script>
-var id=(new URLSearchParams(location.search).get('v')||'');
-if(!/^[\w-]{11}$/.test(id)){document.getElementById('bad').style.display='block';}
+var ids=(new URLSearchParams(location.search).get('v')||'').split(',').filter(function(x){return /^[\w-]{11}$/.test(x);}).slice(0,4), cur=0;
+if(!ids.length){document.getElementById('bad').style.display='block';}
 else{
   var s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s);
   window.onYouTubeIframeAPIReady=function(){
-    window.__p=new YT.Player('p',{videoId:id,width:'100%',height:'100%',
+    window.__p=new YT.Player('p',{videoId:ids[0],width:'100%',height:'100%',
       playerVars:{rel:0,playsinline:1,autoplay:1,fs:1,modestbranding:1,iv_load_policy:3},
-      events:{onStateChange:function(e){ if(e.data===YT.PlayerState.ENDED){ document.getElementById('wrap').remove(); document.getElementById('end').style.display='flex'; } }}});
+      events:{onStateChange:function(e){ if(e.data===YT.PlayerState.ENDED){ cur++; if(cur<ids.length){ __p.loadVideoById(ids[cur]); } else { document.getElementById('wrap').remove(); document.getElementById('end').style.display='flex'; } } }}});
   };
 }
 var APP='https://claude.ai/artifact/8UDwLddhgjRX2MoNaDLbMA';
