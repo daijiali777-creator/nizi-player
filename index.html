@@ -13,9 +13,12 @@ html,body{margin:0;height:100%;background:#2b2366;font-family:-apple-system,"Pin
 #end p{margin:0;font-size:24px;color:#5a4fb0}
 #end button{border:none;font:inherit;font-size:30px;font-weight:900;color:#fff;background:linear-gradient(180deg,#5cd6a0,#2fb57a);padding:16px 42px;border-radius:26px;box-shadow:0 7px 0 #1e8c5c}
 @keyframes hop{50%{transform:translateY(-14px) rotate(-6deg)}}
+#skip{position:fixed;right:18px;bottom:18px;z-index:5;display:none;border:none;font:inherit;font-size:26px;font-weight:900;color:#fff;background:linear-gradient(180deg,#ff7aa8,#ff4f88);padding:14px 26px;border-radius:24px;box-shadow:0 6px 0 #c2185b,0 0 24px rgba(255,79,136,.6);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.07)}}
 #bad{display:none;color:#fff;font-size:22px;text-align:center;padding:30px}
 </style></head><body>
 <div id="wrap"><div id="p"></div><div id="bad">视频地址不对</div></div>
+<button id="skip"></button>
 <div id="end"><div class="ic">🎉</div><h1>看完啦！</h1><p>点下面的按钮，回乐园开始挑战吧！</p><button id="close">🚀 回乐园</button></div>
 <script>
 var QS=new URLSearchParams(location.search), SUR=QS.get('m')==='s';
@@ -29,9 +32,15 @@ else{
     var pv={rel:0,playsinline:1,autoplay:1,fs:1,modestbranding:1,iv_load_policy:3}; if(ids[0].s)pv.start=ids[0].s; if(ids[0].e)pv.end=ids[0].e;
     window.__p=new YT.Player('p',{videoId:ids[0].id,width:'100%',height:'100%',
       playerVars:pv,
-      events:{onStateChange:function(e){ if(e.data===YT.PlayerState.ENDED){ cur++; if(cur<ids.length){ __p.loadVideoById(ld(ids[cur])); } else { document.getElementById('wrap').remove(); document.getElementById('end').style.display='flex'; } } }}});
+      events:{onStateChange:function(e){ if(e.data===YT.PlayerState.ENDED){ next(); } }}});
   };
 }
+function done(){ var w=document.getElementById('wrap'); if(w) w.remove(); sk.style.display='none'; document.getElementById('end').style.display='flex'; }
+function next(){ cur++; if(cur<ids.length){ __p.loadVideoById(ld(ids[cur])); sk.style.display='none'; } else done(); }
+var sk=document.getElementById('skip'); sk.onclick=function(){ try{__p.pauseVideo();}catch(e){} if(cur<ids.length-1) next(); else { done(); document.getElementById('close').click(); } };
+/* 片尾曲很长：最后一分钟左右就出现按钮，可以直接回乐园或看下一集 */
+setInterval(function(){ try{ if(!window.__p||!__p.getDuration) return; var d=__p.getDuration(), t=__p.getCurrentTime(); if(!d) return; var x=ids[cur]||{}, end=x.e||d, left=end-t;
+  if(left>0 && left<=Math.min(60,(end-(x.s||0))*.12)){ if(sk.style.display!=='block'){ sk.textContent= cur<ids.length-1 ? '⏭ 下一集' : (SUR?'🏠 回乐园':'🚀 回乐园'); sk.style.display='block'; } } else if(left>60) sk.style.display='none'; }catch(e){} },1000);
 var APP='https://claude.ai/artifact/8UDwLddhgjRX2MoNaDLbMA';
 document.getElementById('close').onclick=function(){ try{window.close();}catch(e){} setTimeout(function(){ if(!window.closed){ location.href=APP; } },400); };
 </script>
