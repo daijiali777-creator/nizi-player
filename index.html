@@ -24,8 +24,10 @@ html,body{margin:0;height:100%;background:#2b2366;font-family:-apple-system,"Pin
 var QS=new URLSearchParams(location.search), SUR=QS.get('m')==='s';
 var ids=(QS.get('v')||'').split(',').map(function(x){var a=x.split('~');return {id:a[0],s:+a[1]||0,e:+a[2]||0};}).filter(function(x){return /^[\w-]{11}$/.test(x.id);}).slice(0,4), cur=0;
 var ld=function(x){return x.e?{videoId:x.id,startSeconds:x.s,endSeconds:x.e}:{videoId:x.id,startSeconds:x.s};};
+/* y=1：直接跳到 YouTube 自己的播放页（第一方网页，能用上 Premium，没有推荐视频） */
+if(QS.get('y')==='1' && ids.length){ var f=ids[0], q='autoplay=1&rel=0&playsinline=1&fs=1&iv_load_policy=3'+(ids.length>1?'&playlist='+ids.slice(1).map(function(x){return x.id;}).join(','):'')+(f.s?'&start='+f.s:'')+(f.e?'&end='+f.e:''); location.replace('https://www.youtube.com/embed/'+f.id+'?'+q); ids=[]; }
 if(SUR){document.title='惊喜动画时间';document.querySelector('#end .ic').textContent='🦄';document.querySelector('#end h1').textContent='看完啦！';document.querySelector('#end p').textContent='今天的惊喜结束啦，明天继续加油哦！';document.getElementById('close').textContent='🏠 回乐园';}
-if(!ids.length){document.getElementById('bad').style.display='block';}
+if(!ids.length){ if(QS.get('y')!=='1') document.getElementById('bad').style.display='block'; }
 else{
   var s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s);
   window.onYouTubeIframeAPIReady=function(){
