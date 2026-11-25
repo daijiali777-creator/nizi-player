@@ -59,7 +59,7 @@ const Q = new URLSearchParams(location.search), $ = s => document.querySelector(
 const LS = { g: k => { try { return localStorage.getItem(k) } catch (e) { return null } }, s: (k, v) => { try { localStorage.setItem(k, v) } catch (e) {} } };
 if (Q.get('k')) LS.s('nzk', Q.get('k')); if (Q.get('w')) LS.s('nzw', Q.get('w'));
 const K = LS.g('nzk') || '', W = (LS.g('nzw') || 'https://nizi-shudong.daijiali777.workers.dev').replace(/\/$/, '');
-const PET = Q.get('p') || '小鸭', MODE = Q.get('m') || '', BACK = Q.get('back') || 'https://claude.ai/artifact/8UDwLddhgjRX2MoNaDLbMA';
+const VOICE = Q.get('v') || '', PET = Q.get('p') || '小鸭', MODE = Q.get('m') || '', BACK = Q.get('back') || 'https://claude.ai/artifact/8UDwLddhgjRX2MoNaDLbMA';
 const SESSION_MS = 5 * 60 * 1000, PER_DAY = 2;
 $('#home').href = BACK;
 // 宠物形象：由小程序通过 #s= 传入
@@ -74,7 +74,7 @@ try { hist = JSON.parse(sessionStorage.getItem('nzh') || '[]') } catch (e) {}
 const saveH = () => { try { sessionStorage.setItem('nzh', JSON.stringify(hist.slice(-30))) } catch (e) {} };
 
 async function api(path, body) {
-  const r = await fetch(W + path + (path.includes('?') ? '&' : '?') + 'p=' + encodeURIComponent(PET), { method: body ? 'POST' : 'GET', headers: { 'X-K': K, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+  const r = await fetch(W + path + (path.includes('?') ? '&' : '?') + 'p=' + encodeURIComponent(PET), { method: body ? 'POST' : 'GET', headers: { 'X-K': K, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(Object.assign({ voice: VOICE }, body)) : undefined });
   return r.json();
 }
 function play(b64, plain) {
