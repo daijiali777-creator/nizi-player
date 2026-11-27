@@ -22,24 +22,28 @@ const ZH = { happy: '开心', calm: '平静', sad: '难过', angry: '生气', wo
 const esc = s => String(s || '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
 const GOOD = { happy: 3, calm: 2, mixed: 1, jealous: 0, worried: 0, sad: 0, angry: 0, scared: 0 };
-function plain(j) {
-  if (!j.days.length) return '这几天她还没去树洞说话。';
-  const d = j.days[0], it = d.items, n = it.length, today = new Date().toLocaleDateString('sv') === d.d;
+function dayPlain(d, alerts, first) {
+  const it = d.items, n = it.length; if (!n) return '';
+  const today = new Date().toLocaleDateString('sv') === d.d;
   const c = {}; it.forEach(i => c[i.mood] = (c[i.mood] || 0) + 1);
   const ms = Object.entries(c).sort((a, b) => b[1] - a[1]);
   const mood = ms.map(([m, k], x) => (x === 0 && k > n / 2 ? '大部分时候' : '') + (ZH[m] || m) + '（' + k + '句）').join('，');
-  const ts = it.map(i => i.ts.slice(-5)).sort();
-  const first = it.slice().sort((a, b) => a.ts < b.ts ? -1 : 1), a = first[0], z = first[n - 1];
-  let turn = '';
-  if (n > 2) { const g0 = GOOD[a.mood] ?? 1, g1 = GOOD[z.mood] ?? 1; turn = g1 > g0 ? '聊到最后，心情好一些了。' : g1 < g0 ? '聊到最后心情反而差了一点，可以多留意。' : ''; }
-  const tp = []; it.forEach(i => { const t = (i.topic || '').trim(); if (t && !tp.includes(t)) tp.push(t); });
-  const al = j.alerts.filter(x => (x.ts || '').startsWith(d.d)).length, ye = it.filter(i => i.risk === 'yellow').length;
-  let h = `<b>${today ? '今天' : d.d.slice(5).replace('-', '月') + '日'}</b>（${ts[0]}${ts.length > 1 ? '–' + ts[ts.length - 1] : ''}）她跟宠物说了 <b>${n} 句</b>，心情：${mood}。${turn}`;
-  if (tp.length) h += `<br>说的主要是：<b>${tp.slice(0, 6).map(esc).join('、')}</b>。`;
-  h += '<br>' + (al ? `<span style="color:#e53935">⚠️ 有 ${al} 件需要你关注，看下面红色的卡片。</span>` : ye ? `有 ${ye} 句值得留意一下（下面带黄色竖线的）。没有不安全的事。` : '✅ 没有说到不安全的事。');
-  const wk = j.days.slice(0, 7); if (wk.length > 1) { const all = {}; let t = 0; wk.forEach(x => x.items.forEach(i => { all[i.mood] = (all[i.mood] || 0) + 1; t++; })); const top = Object.entries(all).sort((a, b) => b[1] - a[1])[0]; h += `<br><span class="muted">最近 ${wk.length} 天里有聊天，一共 ${t} 句，最多的心情是「${ZH[top[0]] || top[0]}」。</span>`; }
+  const o = it.slice().sort((a, b) => a.ts < b.ts ? -1 : 1), a = o[0], z = o[n - 1];
+  let turn = ''; if (n > 2) { const g0 = GOOD[a.mood] ?? 1, g1 = GOOD[z.mood] ?? 1; turn = g1 > g0 ? '聊到最后，心情好一些了。' : g1 < g0 ? '聊到最后心情反而差了一点，可以多留意。' : ''; }
+  const tp = []; o.forEach(i => { const t = (i.topic || '').trim(); if (t && !tp.includes(t)) tp.push(t); });
+  const al = alerts.filter(x => (x.ts || '').startsWith(d.d)).length, ye = it.filter(i => i.risk === 'yellow').length;
+  let h = `${first ? `<b>${today ? '今天' : d.d.slice(5).replace('-', '月') + '日'}</b>` : ''}（${a.ts.slice(-5)}${n > 1 ? '–' + z.ts.slice(-5) : ''}）她说了 <b>${n} 句</b>，心情：${mood}。${turn}`;
+  if (tp.length) h += `<br>主要在说：<b>${tp.slice(0, 6).map(esc).join('、')}</b>。`;
+  h += '<br>' + (al ? `<span style="color:#e53935">⚠️ 有 ${al} 件需要你关注，看上面红色的卡片。</span>` : ye ? `有 ${ye} 句值得留意（带黄色竖线的）。没有不安全的事。` : '✅ 没有说到不安全的事。');
   const sad = it.filter(i => ['sad', 'angry', 'worried', 'scared', 'jealous'].includes(i.mood)).length;
-  if (sad > n / 2) h += '<br>💛 她今天不太开心的时候比较多，抱抱她、听她把话说完，比讲道理更管用。';
+  if (sad > n / 2) h += '<br>💛 这天不开心的时候比较多，抱抱她、听她把话说完，比讲道理更管用。'; else if ((c.happy || 0) > n / 2) h += '<br>🌞 这天她挺开心的。';
+  return h;
+}
+function plain(j) {
+  if (!j.days.length) return '这几天她还没去树洞说话。';
+  let h = dayPlain(j.days[0], j.alerts, true);
+  const wk = j.days.slice(0, 7); if (wk.length > 1) { const all = {}; let t = 0; wk.forEach(x => x.items.forEach(i => { all[i.mood] = (all[i.mood] || 0) + 1; t++; })); const top = Object.entries(all).sort((a, b) => b[1] - a[1])[0]; const tp = {}; wk.forEach(x => x.items.forEach(i => { const k = (i.topic || '').trim(); if (k) tp[k] = (tp[k] || 0) + 1; })); const tt = Object.entries(tp).sort((a, b) => b[1] - a[1]).slice(0, 4).map(x => esc(x[0])).join('、');
+    h += `<hr style="border:0;border-top:1px dashed #ddd;margin:10px 0"><b>最近 ${wk.length} 天</b>：一共 ${t} 句，最多的心情是「${ZH[top[0]] || top[0]}」${tt ? '，反复提到：' + tt : ''}。每天的大白话在下面每一天的最上面。`; }
   return h;
 }
 async function load(pin) {
@@ -52,7 +56,7 @@ async function load(pin) {
   j.days.slice(0, 14).reverse().forEach(d => { const c = {}; d.items.forEach(i => c[i.mood] = (c[i.mood] || 0) + 1); const top = Object.entries(c).sort((a, b) => b[1] - a[1])[0]; h += `<div><b>${EMO[top && top[0]] || '·'}</b>${d.d.slice(5)}<br>${d.items.length}句</div>`; });
   h += '</div>';
   h += '<h2>📝 每天聊了什么（概括）</h2>';
-  j.days.forEach(d => { const seen = new Set(); h += `<div class="card"><div class="k">${d.d}</div>`; d.items.forEach(i => { const key = i.summary; if (seen.has(key)) return; seen.add(key); h += `<div class="${i.risk === 'yellow' ? 'yellow' : ''}" style="padding-left:8px;margin:4px 0">${EMO[i.mood] || ''} <span class="muted">${esc(i.ts.slice(-5))} · ${esc(i.topic)}</span><br>${esc(i.summary)}</div>`; }); h += '</div>'; });
+  j.days.forEach(d => { const seen = new Set(); h += `<div class="card"><div class="k">${d.d}</div><div style="background:#f3eeff;border-radius:12px;padding:8px 10px;margin:6px 0 8px;font-size:16px">🧸 ${dayPlain(d, j.alerts, false)}</div>`; d.items.forEach(i => { const key = i.summary; if (seen.has(key)) return; seen.add(key); h += `<div class="${i.risk === 'yellow' ? 'yellow' : ''}" style="padding-left:8px;margin:4px 0">${EMO[i.mood] || ''} <span class="muted">${esc(i.ts.slice(-5))} · ${esc(i.topic)}</span><br>${esc(i.summary)}</div>`; }); h += '</div>'; });
   if (j.gifts.length) { h += '<h2>💌 她送给你的悄悄话</h2>'; j.gifts.slice().reverse().forEach(g => { h += `<div class="card"><div class="muted">${esc(g.ts)}</div>`; g.lines.forEach(l => h += `<div>${l.r === 'k' ? '<b>Nizi：</b>' : '<span class="muted">宠物：</span>'}${esc(l.t)}</div>`); h += '</div>'; }); }
   if (!j.days.length) h += '<div class="card muted">还没有对话记录。</div>';
   h = `<h2>🧸 大白话总结</h2><div class="card" style="border-left:6px solid #6c4cd6">${plain(j)}</div><h2>💡 可以对 Nizi 说的话</h2><div class="card"><div id="sug" class="muted">正在想…</div><button id="sugN" style="margin-top:10px">换一批</button></div>
